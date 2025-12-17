@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+for pokemon in "${pokemon_list[@]}"; do
+    curl -s "https://pokeapi.co/api/v2/pokemon/$pokemon" -o "${pokemon}.json" 2>> errors.txt
+    sleep 1  # Delay to handle potential rate-limiting
+done
