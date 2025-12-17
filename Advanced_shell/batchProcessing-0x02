@@ -1,7 +1,28 @@
 #!/bin/bash
 
 pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+touch errors.txt
+
 for pokemon in "${pokemon_list[@]}"; do
-    curl -s "https://pokeapi.co/api/v2/pokemon/$pokemon" -o "${pokemon}.json" 2>> errors.txt
+    # attempt the request up to 3 times, using a temporary file to avoid partial JSON files on failure
+    tmpfile="$(mktemp)"
+    success=false
+    for attempt in 1 2 3; do
+        if curl -sSf --max-time 10 "https://pokeapi.co/api/v2/pokemon/$pokemon" -o "$tmpfile"; then
+            mv "$tmpfile" "${pokemon}.json"
+            success=true
+            break
+        else
+            rc=$?
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $pokemon - attempt $attempt failed (curl exit $rc)" >> errors.txt
+            sleep $((attempt))
+        fi
+    done
+
+    if [ "$success" = false ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $pokemon - skipped after 3 attempts" >> errors.txt
+        rm -f "$tmpfile"
+    fi
+
     sleep 1  # Delay to handle potential rate-limiting
 done
