@@ -1,0 +1,13 @@
+#!/bin/bash
+pokemon_data=$(cat data.json)
+
+name=$(echo "$pokemon_data" | jq -r '.forms[0].name' | sed 's/\b\(.\)/\u\1/')
+name=$(echo "$name" | awk '{ print toupper(substr($0, 1, 1)) substr($0, 2) }')
+
+height=$(echo "$pokemon_data" | jq -r '.height' | awk '{printf "%.1f", $1 / 10}')
+
+weight=$(echo "$pokemon_data" | jq -r '.weight' | awk '{printf "%.0f", $1 / 10}')
+
+type=$(echo "$pokemon_data" | jq -r '.types[0].type.name' | sed 's/\b\(.\)/\u\1/')
+
+echo "${name} is of type $type, weighs ${weight}kg, and is ${height}m tall."
